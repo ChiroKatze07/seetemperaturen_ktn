@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="de"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seetemperaturen</title>
+
+   <script>
+        function laden() {
+            const params = new URLSearchParams(window.location.search);
+            const see = params.get('see');
+
+            if (see) {
+                document.getElementById('seen').value = see;
+            }
+
+            anzeigen();
+            setInterval(anzeigen, 600000) //10 Minuten = 600000 Millisekunden
+        }
+
+        async function anzeigen() {
+            try {
+                const response = await fetch(
+                    "hydroproxy.php"
+                );
+
+                const daten = await response.json();
+
+                let ausgewSee = document.getElementById("seen").value;
+
+                let temperaturRoh = daten.features[ausgewSee].properties.letzter_wert_wt;
+
+                let temperaturRohStr = `${temperaturRoh}`
+
+                let temperatur = temperaturRohStr.replace(".", ",") + " °C"
+
+                document.getElementById("grad").innerHTML = temperatur;
+
+                let seeName = daten.features[ausgewSee].properties.name;
+
+                document.getElementById("name").innerHTML = seeName;
+
+                let datenDatumRoh = daten.features[ausgewSee].properties.letzter_wert_wt_date;
+
+                let datenDatumRohStr = `${datenDatumRoh}`;
+
+                const datum = new Date(datenDatumRohStr);
+
+                const formatiert =
+                    datum.toLocaleString("de-AT", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    });
+
+                document.getElementById("zeit").innerHTML = formatiert;
+
+                let Wasserstand = daten.features[ausgewSee].properties.letzter_wert_w;
+
+                document.getElementById("wasserstand").innerHTML = Wasserstand + "&nbsp;cm Wasserstand";
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function grafik() {
+            try {
+                const response = await fetch(
+                    "hydroproxy.php"
+                );
+
+                const daten = await response.json();
+
+                let ausgewSee = document.getElementById("seen").value;
+
+                window.location.assign(daten.features[ausgewSee].properties.grafik_url)
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    </script>
+
+</head>
+
+<body onload="laden()">
+    <style>
+
+        @font-face {
+            font-family: "ElmsSans";
+            src: url(seetemperaturen_files/ElmsSans-VariableFont_wght.ttf) format("truetype-variations");
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        body {
+            background-color: #00bfff;
+            color: #fff;
+            margin: auto;
+            justify-items: center;
+            padding: 2rem;
+            font-family: 'ElmsSans', Arial, Helvetica, sans-serif;
+            text-align: center;
+            min-height: 97vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0px;
+        }
+
+        main {
+            flex: 1;
+            max-width: 1000px;
+            margin: auto;
+            z-index: 2;
+        }
+
+        .center-div {
+            margin: auto;
+            max-width: max-content;
+        }
+
+        select {
+            margin-top: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            min-width: 200px;
+            text-align: center;
+            align-items: center;
+            color: white;
+            padding-block: 10px;
+            padding-inline: 20px 30px;
+            border-radius: 15px;
+            border: 4px solid #3586ff;
+            cursor: pointer;
+            background: #1f9cff;
+        }
+
+        #grad {
+            font-size: 14rem;
+            font-weight: 900;
+        }
+
+        .infos {
+            font-size: 2rem;
+            margin-top: -9rem;
+        }
+
+        .infos p {
+            line-height: 2rem;
+            margin-bottom: -1.5rem;
+        }
+
+        footer {
+            min-height: 50px;
+            z-index: 1;
+        }
+
+        #grafiklink,
+        a {
+            color: #fff;
+            font-style: italic;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        a:visited {
+            color: #fff;
+            font-style: italic;
+        }
+
+        /* https://codepen.io/koderian/pen/dyyByOx */
+        section{
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100vh;
+            background: #00bfff;
+            background: linear-gradient(180deg,rgba(0, 191, 255, 1) 5%, rgba(138, 226, 255, 1) 80%);
+            overflow: hidden;
+            z-index: -1;
+        }
+        section .air{
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 350px;
+            background: url(seetemperaturen_files/wave.png);
+            background-size: 1000px 350px
+        }
+        section .air.air1{
+            animation: wave 30s linear infinite;
+            z-index: 1000;
+            opacity: 1;
+            animation-delay: 0s;
+            bottom: 0;
+        }
+        section .air.air2{
+            animation: wave2 15s linear infinite;
+            z-index: 999;
+            opacity: 0.5;
+            animation-delay: -5s;
+            bottom: 10px;
+        }
+        section .air.air3{
+            animation: wave 30s linear infinite;
+            z-index: 998;
+            opacity: 0.2;
+            animation-delay: -2s;
+            bottom: 15px;
+        }
+        section .air.air4{
+            animation: wave2 5s linear infinite;
+            z-index: 997;
+            opacity: 0.7;
+            animation-delay: -5s;
+            bottom: 20px;
+        }
+        @keyframes wave{
+            0%{
+                background-position-x: 0px; 
+            }
+            100%{
+                background-position-x: 1000px; 
+            }
+            }
+            @keyframes wave2{
+            0%{
+                background-position-x: 0px; 
+            }
+            100%{
+                background-position-x: -1000px; 
+            }
+        }
+
+        @media screen and (max-width: 1000px) {
+            main {
+                flex: 1;
+                max-width: 750;
+                margin: auto;
+            }
+
+            #grad {
+                font-size: 8rem;
+            }
+
+            .infos {
+                font-size: 1.8rem;
+                margin-top: -4.5rem;
+                line-height: .5rem;
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            main {
+                flex: 1;
+                max-width: 450;
+                margin: auto;
+            }
+
+            #grad {
+                font-size: 5rem;
+            }
+
+            .infos {
+                font-size: 1.35rem;
+                margin-top: -2.5rem;
+                line-height: .35rem;
+            }
+        }
+
+        @media screen and (max-height: 800px) {
+            section .air {
+                height: 250px;
+                background-size: 1000px 250px
+            }
+        }
+
+        @media screen and (max-height: 680px) {
+            section .air {
+                height: 150px;
+                background-size: 1000px 150px
+            }
+        }
+
+    </style>
+
+    <main>
+        <div class="center-div">
+            <select name="seen" id="seen" onchange="anzeigen()">
+                <option value="0">Afritzer See</option>
+                <option value="1">Faaker See</option>
+                <option value="2" selected="selected">Brennsee</option>
+                <option value="3">Gösselsdorfer See</option>
+                <option value="4">Klopeiner See</option>
+                <option value="5">Längsee</option>
+                <option value="6">Maltschacher See</option>
+                <option value="7">Millstätter See</option>
+                <option value="8">Ossiacher See</option>
+                <option value="9">Pressegger See</option>
+                <option value="10">Rauschele See</option>
+                <option value="11">Turnersee</option>
+                <option value="12">Weißensee</option>
+                <option value="13">Wörthersee</option>
+            </select>
+        </div>
+        
+        <div class="center-div">
+            <h1 id="grad">20,1 °C</h1>
+        </div>
+
+        
+
+        <div class="infos">
+            <p id="name">Feldsee / Brennsee (Feld am See)</p>
+            <p id="wasserstand">156&nbsp;cm Wasserstand</p>
+            <p id="zeit">14.06.2026, 19:00</p>
+            <p id="grafiklink" onclick="grafik()">Temperaturgraph</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>Datenquelle: <a href="https://hydrographie.ktn.gv.at/">Hydrographischer Dienst Kärnten</a>, <a href="https://www.data.gv.at">data.gv.at</a></p>
+    </footer>
+
+    <section>
+        <div class="air air1"></div>
+        <div class="air air2"></div>
+        <div class="air air3"></div>
+        <div class="air air4"></div>
+    </section>
+
+
+</body></html>
